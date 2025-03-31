@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Base is for...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        
         body {
-            font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
+            font-family: 'Inter', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,7 +19,7 @@
         }
         h1 {
             font-size: 48px;
-            font-weight: normal;
+            font-weight: 800;
             margin-bottom: 20px;
         }
         input {
@@ -31,8 +30,7 @@
             background-color: white;
             color: black;
             text-align: center;
-            font-weight: bold;
-            font-family: 'Inter', sans-serif;
+            font-weight: 800;
         }
         button {
             font-size: 24px;
@@ -41,8 +39,7 @@
             color: black;
             border: 2px solid black;
             cursor: pointer;
-            font-weight: bold;
-            font-family: 'Inter', sans-serif;
+            font-weight: 800;
         }
         button:hover {
             background-color: #e0e0e0;
@@ -52,10 +49,10 @@
         }
         a {
             font-size: 24px;
-            color: #1370e4; /* Matching the blue in the images */
+            color: #007bff;
             text-decoration: none;
             margin-top: 20px;
-            font-weight: bold;
+            font-weight: 800;
         }
         a:hover {
             text-decoration: underline;
@@ -66,227 +63,72 @@
     <h1>Base is for...</h1>
     <input type="text" id="customWord" placeholder="Enter a word">
     <button onclick="generateImage()">Generate</button>
-    <canvas id="canvas" width="600" height="500"></canvas>
+    <canvas id="canvas" width="600" height="400"></canvas>
     <a id="downloadLink" style="display: none;">Download</a>
+
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const customWordInput = document.getElementById('customWord');
         const downloadLink = document.getElementById('downloadLink');
-        
-        // Function to draw multiple overlapping hand-drawn circles
-        function drawHandDrawnCircle(ctx, x, y, width, height) {
-            const blueColor = '#1370e4'; // Matching the blue in the images
-            
-            ctx.strokeStyle = blueColor;
-            ctx.lineWidth = 4;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            // Draw 2-4 overlapping circles
-            const numCircles = 2 + Math.floor(Math.random() * 3);
-            
-            for (let c = 0; c < numCircles; c++) {
-                // Create a slightly offset center for each circle
-                const offsetX = x + (Math.random() - 0.5) * 15;
-                const offsetY = y + (Math.random() - 0.5) * 10;
-                
-                // Vary the width and height slightly for each circle
-                const varWidth = width * (0.95 + Math.random() * 0.2);
-                const varHeight = height * (0.9 + Math.random() * 0.3);
-                
-                // Number of segments to use for this circle
-                const segments = 12 + Math.floor(Math.random() * 8);
-                
-                // Start a new path
-                ctx.beginPath();
-                
-                // Random starting point
-                const startAngle = Math.random() * Math.PI * 2;
-                let startX, startY;
-                
-                // Sometimes make a complete circle, sometimes make it incomplete
-                const fullCircle = Math.random() > 0.3;
-                const endAngle = fullCircle ? startAngle + Math.PI * 2 : startAngle + (Math.PI * 1.2 + Math.random() * Math.PI * 0.8);
-                
-                for (let i = 0; i <= segments; i++) {
-                    // Calculate the current angle
-                    const progress = i / segments;
-                    const angle = startAngle + progress * (endAngle - startAngle);
-                    
-                    // Calculate base position
-                    const baseX = offsetX + (varWidth / 2) * Math.cos(angle);
-                    const baseY = offsetY + (varHeight / 2) * Math.sin(angle);
-                    
-                    // Add randomness to the point
-                    const jitterX = (Math.random() - 0.5) * 10;
-                    const jitterY = (Math.random() - 0.5) * 10;
-                    
-                    const pointX = baseX + jitterX;
-                    const pointY = baseY + jitterY;
-                    
-                    if (i === 0) {
-                        startX = pointX;
-                        startY = pointY;
-                        ctx.moveTo(pointX, pointY);
-                    } else {
-                        // Add some randomness to the control points
-                        const prevAngle = startAngle + ((i - 1) / segments) * (endAngle - startAngle);
-                        const midAngle = (prevAngle + angle) / 2;
-                        
-                        // Control point - add some random variation
-                        const ctrlDistance = Math.random() * 30 + 20;
-                        const ctrlX = offsetX + Math.cos(midAngle) * ctrlDistance + (Math.random() - 0.5) * 20;
-                        const ctrlY = offsetY + Math.sin(midAngle) * ctrlDistance + (Math.random() - 0.5) * 15;
-                        
-                        ctx.quadraticCurveTo(ctrlX, ctrlY, pointX, pointY);
-                    }
-                }
-                
-                // Sometimes add a tail/extension to the line
-                if (!fullCircle && Math.random() > 0.5) {
-                    const tailLength = Math.random() * 50 + 30;
-                    const tailAngle = endAngle + (Math.random() - 0.5) * 1;
-                    const tailX = offsetX + Math.cos(tailAngle) * (varWidth/2 + tailLength);
-                    const tailY = offsetY + Math.sin(tailAngle) * (varHeight/2 + tailLength);
-                    
-                    ctx.lineTo(tailX, tailY);
-                }
-                
-                // Sometimes extend from the start point too
-                if (!fullCircle && Math.random() > 0.7) {
-                    ctx.moveTo(startX, startY);
-                    const startTailLength = Math.random() * 40 + 20;
-                    const startTailAngle = startAngle - (Math.random() - 0.5) * 1;
-                    const startTailX = offsetX + Math.cos(startTailAngle) * (varWidth/2 + startTailLength);
-                    const startTailY = offsetY + Math.sin(startTailAngle) * (varHeight/2 + startTailLength);
-                    
-                    ctx.lineTo(startTailX, startTailY);
-                }
-                
-                ctx.stroke();
-                
-                // Sometimes add crossing lines
-                if (Math.random() > 0.5) {
-                    ctx.beginPath();
-                    
-                    const crossStartAngle = Math.random() * Math.PI * 2;
-                    const crossEndAngle = crossStartAngle + Math.PI;
-                    
-                    const crossStartX = offsetX + Math.cos(crossStartAngle) * (varWidth/2);
-                    const crossStartY = offsetY + Math.sin(crossStartAngle) * (varHeight/2);
-                    
-                    const crossEndX = offsetX + Math.cos(crossEndAngle) * (varWidth/2);
-                    const crossEndY = offsetY + Math.sin(crossEndAngle) * (varHeight/2);
-                    
-                    // Add some jitter
-                    ctx.moveTo(
-                        crossStartX + (Math.random() - 0.5) * 20, 
-                        crossStartY + (Math.random() - 0.5) * 20
-                    );
-                    
-                    // Create a control point for the curve
-                    const ctrlX = offsetX + (Math.random() - 0.5) * 30;
-                    const ctrlY = offsetY + (Math.random() - 0.5) * 30;
-                    
-                    ctx.quadraticCurveTo(
-                        ctrlX, 
-                        ctrlY, 
-                        crossEndX + (Math.random() - 0.5) * 20, 
-                        crossEndY + (Math.random() - 0.5) * 20
-                    );
-                    
-                    ctx.stroke();
-                }
-            }
-        }
-        
+
         function drawImage(word) {
             // Clear the canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             // Set background to white
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Use the right font - Inter with thinner weight
-            ctx.font = '80px Inter, Helvetica, Arial, sans-serif';
+
+            // Draw the text "Base is for"
+            ctx.font = '800 60px Inter, sans-serif';
             ctx.fillStyle = 'black';
             ctx.textAlign = 'center';
-            
-            // Draw the text "Base is for"
-            ctx.fillText('Base', canvas.width / 2, 160);
-            ctx.fillText('is for', canvas.width / 2, 240);
-            
-            // Handle the custom word - potentially wrapping it to multiple lines
+            ctx.fillText('Base', canvas.width / 2, 150);
+            ctx.fillText('is for', canvas.width / 2, 220);
+
+            // Draw the custom word
             const customWord = word.toLowerCase();
-            const maxWidth = canvas.width * 0.8; // Maximum width for text
-            
-            // Check if we need multiple lines
-            ctx.font = '80px Inter, Helvetica, Arial, sans-serif';
-            let textWidth = ctx.measureText(customWord).width;
-            
-            if (textWidth > maxWidth) {
-                // We need to break into multiple lines
-                const words = customWord.split(' ');
-                const lines = [];
-                let currentLine = words[0];
-                
-                for (let i = 1; i < words.length; i++) {
-                    const testLine = currentLine + ' ' + words[i];
-                    const testWidth = ctx.measureText(testLine).width;
-                    
-                    if (testWidth <= maxWidth) {
-                        currentLine = testLine;
-                    } else {
-                        lines.push(currentLine);
-                        currentLine = words[i];
-                    }
-                }
-                lines.push(currentLine);
-                
-                // Calculate positions for multiple lines
-                const lineHeight = 90;
-                const startY = 320 - ((lines.length - 1) * lineHeight / 2);
-                
-                // Draw each line
-                lines.forEach((line, index) => {
-                    const y = startY + (index * lineHeight);
-                    ctx.fillText(line, canvas.width / 2, y);
-                });
-                
-                // Draw the hand-drawn style circle around all lines
-                const totalHeight = lineHeight * (lines.length - 1) + 60;
-                const widestLine = lines.reduce((max, line) => 
-                    Math.max(max, ctx.measureText(line).width), 0);
-                    
-                const padding = 50;
-                const circleWidth = widestLine + padding;
-                const circleHeight = totalHeight + padding;
-                const centerY = startY + (totalHeight / 2) - 30;
-                
-                drawHandDrawnCircle(ctx, canvas.width / 2, centerY, circleWidth, circleHeight);
-            } else {
-                // Single line case - as before
-                ctx.fillText(customWord, canvas.width / 2, 320);
-                
-                // Draw the hand-drawn style circle around the single line
-                const padding = 50;
-                
-                drawHandDrawnCircle(ctx, canvas.width / 2, 310, textWidth + padding, 75);
+            ctx.fillText(customWord, canvas.width / 2, 290);
+
+            // Draw the hand-drawn blue circle around the custom word with dynamic sizing
+            const textMetrics = ctx.measureText(customWord);
+            const textWidth = textMetrics.width;
+            const padding = 20;
+            const xRadius = textWidth / 2 + padding; // Dynamic horizontal radius
+            const yRadius = 40; // Fixed vertical radius
+
+            // Draw multiple slightly offset ellipses to create a hand-drawn effect
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(0, 123, 255, ${0.5 - i * 0.1})`; // Vary opacity for depth
+                ctx.lineWidth = 5;
+                // Add small random offsets to make it look hand-drawn
+                const offsetX = (Math.random() - 0.5) * 5;
+                const offsetY = (Math.random() - 0.5) * 5;
+                ctx.ellipse(
+                    canvas.width / 2 + offsetX,
+                    280 + offsetY,
+                    xRadius + (Math.random() - 0.5) * 3, // Slight variation in radius
+                    yRadius + (Math.random() - 0.5) * 3,
+                    0,
+                    0,
+                    2 * Math.PI
+                );
+                ctx.stroke();
             }
         }
-        
+
         function generateImage() {
             const word = customWordInput.value.trim();
             if (!word) {
                 alert('Please enter a word!');
                 return;
             }
-            
+
             // Draw the image with the custom word
             drawImage(word);
-            
+
             // Enable download
             const dataURL = canvas.toDataURL('image/png');
             downloadLink.href = dataURL;
@@ -294,21 +136,9 @@
             downloadLink.style.display = 'block';
             downloadLink.textContent = 'Download';
         }
-        
-        // Wait for fonts to load then draw initial image
-        window.onload = function() {
-            // Draw initial image with a default word after a short delay to ensure fonts are loaded
-            setTimeout(() => {
-                drawImage('everyone');
-            }, 1000);
-        };
-        
-        // Also set up input for pressing Enter
-        customWordInput.addEventListener('keyup', function(event) {
-            if (event.key === 'Enter') {
-                generateImage();
-            }
-        });
+
+        // Draw initial image with a default word
+        drawImage('tokens');
     </script>
 </body>
 </html>
