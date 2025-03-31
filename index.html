@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Base is for...</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         
         body {
-            font-family: 'Inter', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+            font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -21,7 +20,7 @@
         }
         h1 {
             font-size: 48px;
-            font-weight: bold;
+            font-weight: normal;
             margin-bottom: 20px;
         }
         input {
@@ -67,7 +66,7 @@
     <h1>Base is for...</h1>
     <input type="text" id="customWord" placeholder="Enter a word">
     <button onclick="generateImage()">Generate</button>
-    <canvas id="canvas" width="600" height="400"></canvas>
+    <canvas id="canvas" width="600" height="500"></canvas>
     <a id="downloadLink" style="display: none;">Download</a>
     <script>
         const canvas = document.getElementById('canvas');
@@ -75,76 +74,130 @@
         const customWordInput = document.getElementById('customWord');
         const downloadLink = document.getElementById('downloadLink');
         
-        // Function to draw a truly hand-drawn like scribble
+        // Function to draw multiple overlapping hand-drawn circles
         function drawHandDrawnCircle(ctx, x, y, width, height) {
-            const numControlPoints = 8;
             const blueColor = '#1370e4'; // Matching the blue in the images
             
-            ctx.beginPath();
             ctx.strokeStyle = blueColor;
-            ctx.lineWidth = 5;
+            ctx.lineWidth = 4;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             
-            // Create control points for the bezier curves
-            let points = [];
+            // Draw 2-4 overlapping circles
+            const numCircles = 2 + Math.floor(Math.random() * 3);
             
-            // Create initial points in an oval shape with randomness
-            for (let i = 0; i < numControlPoints; i++) {
-                const angle = (i / numControlPoints) * Math.PI * 2;
-                // Add randomness to radius
-                const radiusX = (width / 2) * (0.9 + Math.random() * 0.2);
-                const radiusY = (height / 2) * (0.9 + Math.random() * 0.2);
+            for (let c = 0; c < numCircles; c++) {
+                // Create a slightly offset center for each circle
+                const offsetX = x + (Math.random() - 0.5) * 15;
+                const offsetY = y + (Math.random() - 0.5) * 10;
                 
-                const px = x + radiusX * Math.cos(angle);
-                const py = y + radiusY * Math.sin(angle);
+                // Vary the width and height slightly for each circle
+                const varWidth = width * (0.95 + Math.random() * 0.2);
+                const varHeight = height * (0.9 + Math.random() * 0.3);
                 
-                // Add some random offset
-                points.push({
-                    x: px + (Math.random() - 0.5) * 10,
-                    y: py + (Math.random() - 0.5) * 10
-                });
-            }
-            
-            // Start the path
-            ctx.moveTo(points[0].x, points[0].y);
-            
-            // Draw curves between points
-            for (let i = 0; i < points.length; i++) {
-                const current = points[i];
-                const next = points[(i + 1) % points.length];
+                // Number of segments to use for this circle
+                const segments = 12 + Math.floor(Math.random() * 8);
                 
-                // Create control points for the curve
-                const cpx1 = current.x + (next.x - current.x) * 0.5 + (Math.random() - 0.5) * 30;
-                const cpy1 = current.y + (next.y - current.y) * 0.5 + (Math.random() - 0.5) * 15;
-                
-                ctx.quadraticCurveTo(cpx1, cpy1, next.x, next.y);
-            }
-            
-            ctx.stroke();
-            
-            // Add an additional line or two for the overlapping effect seen in examples
-            if (Math.random() > 0.3) {
-                const startPoint = Math.floor(Math.random() * points.length);
-                const endPoint = (startPoint + Math.floor(numControlPoints/2)) % numControlPoints;
-                
+                // Start a new path
                 ctx.beginPath();
-                ctx.moveTo(points[startPoint].x, points[startPoint].y);
                 
-                // Create a slightly different path
-                const controlX = x + (Math.random() - 0.5) * width * 0.3;
-                const controlY = y + (Math.random() - 0.5) * height * 0.3;
+                // Random starting point
+                const startAngle = Math.random() * Math.PI * 2;
+                let startX, startY;
                 
-                ctx.quadraticCurveTo(controlX, controlY, points[endPoint].x, points[endPoint].y);
+                // Sometimes make a complete circle, sometimes make it incomplete
+                const fullCircle = Math.random() > 0.3;
+                const endAngle = fullCircle ? startAngle + Math.PI * 2 : startAngle + (Math.PI * 1.2 + Math.random() * Math.PI * 0.8);
                 
-                // Maybe extend one end
-                if (Math.random() > 0.5) {
-                    const extendX = points[endPoint].x + (Math.random() * width * 0.3);
-                    const extendY = points[endPoint].y + (Math.random() - 0.5) * 10;
-                    ctx.lineTo(extendX, extendY);
+                for (let i = 0; i <= segments; i++) {
+                    // Calculate the current angle
+                    const progress = i / segments;
+                    const angle = startAngle + progress * (endAngle - startAngle);
+                    
+                    // Calculate base position
+                    const baseX = offsetX + (varWidth / 2) * Math.cos(angle);
+                    const baseY = offsetY + (varHeight / 2) * Math.sin(angle);
+                    
+                    // Add randomness to the point
+                    const jitterX = (Math.random() - 0.5) * 10;
+                    const jitterY = (Math.random() - 0.5) * 10;
+                    
+                    const pointX = baseX + jitterX;
+                    const pointY = baseY + jitterY;
+                    
+                    if (i === 0) {
+                        startX = pointX;
+                        startY = pointY;
+                        ctx.moveTo(pointX, pointY);
+                    } else {
+                        // Add some randomness to the control points
+                        const prevAngle = startAngle + ((i - 1) / segments) * (endAngle - startAngle);
+                        const midAngle = (prevAngle + angle) / 2;
+                        
+                        // Control point - add some random variation
+                        const ctrlDistance = Math.random() * 30 + 20;
+                        const ctrlX = offsetX + Math.cos(midAngle) * ctrlDistance + (Math.random() - 0.5) * 20;
+                        const ctrlY = offsetY + Math.sin(midAngle) * ctrlDistance + (Math.random() - 0.5) * 15;
+                        
+                        ctx.quadraticCurveTo(ctrlX, ctrlY, pointX, pointY);
+                    }
+                }
+                
+                // Sometimes add a tail/extension to the line
+                if (!fullCircle && Math.random() > 0.5) {
+                    const tailLength = Math.random() * 50 + 30;
+                    const tailAngle = endAngle + (Math.random() - 0.5) * 1;
+                    const tailX = offsetX + Math.cos(tailAngle) * (varWidth/2 + tailLength);
+                    const tailY = offsetY + Math.sin(tailAngle) * (varHeight/2 + tailLength);
+                    
+                    ctx.lineTo(tailX, tailY);
+                }
+                
+                // Sometimes extend from the start point too
+                if (!fullCircle && Math.random() > 0.7) {
+                    ctx.moveTo(startX, startY);
+                    const startTailLength = Math.random() * 40 + 20;
+                    const startTailAngle = startAngle - (Math.random() - 0.5) * 1;
+                    const startTailX = offsetX + Math.cos(startTailAngle) * (varWidth/2 + startTailLength);
+                    const startTailY = offsetY + Math.sin(startTailAngle) * (varHeight/2 + startTailLength);
+                    
+                    ctx.lineTo(startTailX, startTailY);
                 }
                 
                 ctx.stroke();
+                
+                // Sometimes add crossing lines
+                if (Math.random() > 0.5) {
+                    ctx.beginPath();
+                    
+                    const crossStartAngle = Math.random() * Math.PI * 2;
+                    const crossEndAngle = crossStartAngle + Math.PI;
+                    
+                    const crossStartX = offsetX + Math.cos(crossStartAngle) * (varWidth/2);
+                    const crossStartY = offsetY + Math.sin(crossStartAngle) * (varHeight/2);
+                    
+                    const crossEndX = offsetX + Math.cos(crossEndAngle) * (varWidth/2);
+                    const crossEndY = offsetY + Math.sin(crossEndAngle) * (varHeight/2);
+                    
+                    // Add some jitter
+                    ctx.moveTo(
+                        crossStartX + (Math.random() - 0.5) * 20, 
+                        crossStartY + (Math.random() - 0.5) * 20
+                    );
+                    
+                    // Create a control point for the curve
+                    const ctrlX = offsetX + (Math.random() - 0.5) * 30;
+                    const ctrlY = offsetY + (Math.random() - 0.5) * 30;
+                    
+                    ctx.quadraticCurveTo(
+                        ctrlX, 
+                        ctrlY, 
+                        crossEndX + (Math.random() - 0.5) * 20, 
+                        crossEndY + (Math.random() - 0.5) * 20
+                    );
+                    
+                    ctx.stroke();
+                }
             }
         }
         
@@ -156,8 +209,8 @@
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Use the right font
-            ctx.font = '900 70px Inter, Helvetica Neue, Helvetica, Arial, sans-serif';
+            // Use the right font - Inter with thinner weight
+            ctx.font = '80px Inter, Helvetica, Arial, sans-serif';
             ctx.fillStyle = 'black';
             ctx.textAlign = 'center';
             
@@ -165,16 +218,63 @@
             ctx.fillText('Base', canvas.width / 2, 160);
             ctx.fillText('is for', canvas.width / 2, 240);
             
-            // Draw the custom word
+            // Handle the custom word - potentially wrapping it to multiple lines
             const customWord = word.toLowerCase();
-            ctx.fillText(customWord, canvas.width / 2, 320);
+            const maxWidth = canvas.width * 0.8; // Maximum width for text
             
-            // Draw the hand-drawn style circle around the custom word
-            const textMetrics = ctx.measureText(customWord);
-            const textWidth = textMetrics.width;
-            const padding = 40;
+            // Check if we need multiple lines
+            ctx.font = '80px Inter, Helvetica, Arial, sans-serif';
+            let textWidth = ctx.measureText(customWord).width;
             
-            drawHandDrawnCircle(ctx, canvas.width / 2, 310, textWidth + padding, 90);
+            if (textWidth > maxWidth) {
+                // We need to break into multiple lines
+                const words = customWord.split(' ');
+                const lines = [];
+                let currentLine = words[0];
+                
+                for (let i = 1; i < words.length; i++) {
+                    const testLine = currentLine + ' ' + words[i];
+                    const testWidth = ctx.measureText(testLine).width;
+                    
+                    if (testWidth <= maxWidth) {
+                        currentLine = testLine;
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = words[i];
+                    }
+                }
+                lines.push(currentLine);
+                
+                // Calculate positions for multiple lines
+                const lineHeight = 90;
+                const startY = 320 - ((lines.length - 1) * lineHeight / 2);
+                
+                // Draw each line
+                lines.forEach((line, index) => {
+                    const y = startY + (index * lineHeight);
+                    ctx.fillText(line, canvas.width / 2, y);
+                });
+                
+                // Draw the hand-drawn style circle around all lines
+                const totalHeight = lineHeight * (lines.length - 1) + 60;
+                const widestLine = lines.reduce((max, line) => 
+                    Math.max(max, ctx.measureText(line).width), 0);
+                    
+                const padding = 50;
+                const circleWidth = widestLine + padding;
+                const circleHeight = totalHeight + padding;
+                const centerY = startY + (totalHeight / 2) - 30;
+                
+                drawHandDrawnCircle(ctx, canvas.width / 2, centerY, circleWidth, circleHeight);
+            } else {
+                // Single line case - as before
+                ctx.fillText(customWord, canvas.width / 2, 320);
+                
+                // Draw the hand-drawn style circle around the single line
+                const padding = 50;
+                
+                drawHandDrawnCircle(ctx, canvas.width / 2, 310, textWidth + padding, 75);
+            }
         }
         
         function generateImage() {
@@ -200,7 +300,7 @@
             // Draw initial image with a default word after a short delay to ensure fonts are loaded
             setTimeout(() => {
                 drawImage('everyone');
-            }, 500);
+            }, 1000);
         };
         
         // Also set up input for pressing Enter
