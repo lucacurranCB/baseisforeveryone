@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Base is for...</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap');
         
         body {
-            font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
+            font-family: 'Inter', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -52,7 +53,7 @@
         }
         a {
             font-size: 24px;
-            color: #007bff;
+            color: #1370e4; /* Matching the blue in the images */
             text-decoration: none;
             margin-top: 20px;
             font-weight: bold;
@@ -74,32 +75,77 @@
         const customWordInput = document.getElementById('customWord');
         const downloadLink = document.getElementById('downloadLink');
         
-        // Function to draw a hand-drawn like oval
-        function drawHandDrawnOval(ctx, x, y, width, height) {
-            const numPoints = 40;
-            const jitterAmount = 3; // Amount of randomness
+        // Function to draw a truly hand-drawn like scribble
+        function drawHandDrawnCircle(ctx, x, y, width, height) {
+            const numControlPoints = 8;
+            const blueColor = '#1370e4'; // Matching the blue in the images
             
             ctx.beginPath();
-            ctx.strokeStyle = '#1a73e8'; // More accurate blue color
-            ctx.lineWidth = 6;
+            ctx.strokeStyle = blueColor;
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             
-            // Start drawing the path
-            for (let i = 0; i <= numPoints; i++) {
-                const theta = (i / numPoints) * Math.PI * 2;
-                const xJitter = (Math.random() - 0.5) * jitterAmount;
-                const yJitter = (Math.random() - 0.5) * jitterAmount;
+            // Create control points for the bezier curves
+            let points = [];
+            
+            // Create initial points in an oval shape with randomness
+            for (let i = 0; i < numControlPoints; i++) {
+                const angle = (i / numControlPoints) * Math.PI * 2;
+                // Add randomness to radius
+                const radiusX = (width / 2) * (0.9 + Math.random() * 0.2);
+                const radiusY = (height / 2) * (0.9 + Math.random() * 0.2);
                 
-                const xPos = x + (width / 2) * Math.cos(theta) + xJitter;
-                const yPos = y + (height / 2) * Math.sin(theta) + yJitter;
+                const px = x + radiusX * Math.cos(angle);
+                const py = y + radiusY * Math.sin(angle);
                 
-                if (i === 0) {
-                    ctx.moveTo(xPos, yPos);
-                } else {
-                    ctx.lineTo(xPos, yPos);
-                }
+                // Add some random offset
+                points.push({
+                    x: px + (Math.random() - 0.5) * 10,
+                    y: py + (Math.random() - 0.5) * 10
+                });
+            }
+            
+            // Start the path
+            ctx.moveTo(points[0].x, points[0].y);
+            
+            // Draw curves between points
+            for (let i = 0; i < points.length; i++) {
+                const current = points[i];
+                const next = points[(i + 1) % points.length];
+                
+                // Create control points for the curve
+                const cpx1 = current.x + (next.x - current.x) * 0.5 + (Math.random() - 0.5) * 30;
+                const cpy1 = current.y + (next.y - current.y) * 0.5 + (Math.random() - 0.5) * 15;
+                
+                ctx.quadraticCurveTo(cpx1, cpy1, next.x, next.y);
             }
             
             ctx.stroke();
+            
+            // Add an additional line or two for the overlapping effect seen in examples
+            if (Math.random() > 0.3) {
+                const startPoint = Math.floor(Math.random() * points.length);
+                const endPoint = (startPoint + Math.floor(numControlPoints/2)) % numControlPoints;
+                
+                ctx.beginPath();
+                ctx.moveTo(points[startPoint].x, points[startPoint].y);
+                
+                // Create a slightly different path
+                const controlX = x + (Math.random() - 0.5) * width * 0.3;
+                const controlY = y + (Math.random() - 0.5) * height * 0.3;
+                
+                ctx.quadraticCurveTo(controlX, controlY, points[endPoint].x, points[endPoint].y);
+                
+                // Maybe extend one end
+                if (Math.random() > 0.5) {
+                    const extendX = points[endPoint].x + (Math.random() * width * 0.3);
+                    const extendY = points[endPoint].y + (Math.random() - 0.5) * 10;
+                    ctx.lineTo(extendX, extendY);
+                }
+                
+                ctx.stroke();
+            }
         }
         
         function drawImage(word) {
@@ -110,15 +156,13 @@
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Use Inter font
-            const fontName = 'Inter';
-            
-            // Draw the text "Base is for"
-            ctx.font = '900 70px ' + fontName + ', Helvetica, Arial, sans-serif';
+            // Use the right font
+            ctx.font = '900 70px Inter, Helvetica Neue, Helvetica, Arial, sans-serif';
             ctx.fillStyle = 'black';
             ctx.textAlign = 'center';
-            ctx.fillText('Base', canvas.width / 2, 160);
             
+            // Draw the text "Base is for"
+            ctx.fillText('Base', canvas.width / 2, 160);
             ctx.fillText('is for', canvas.width / 2, 240);
             
             // Draw the custom word
@@ -128,9 +172,9 @@
             // Draw the hand-drawn style circle around the custom word
             const textMetrics = ctx.measureText(customWord);
             const textWidth = textMetrics.width;
-            const padding = 25;
+            const padding = 40;
             
-            drawHandDrawnOval(ctx, canvas.width / 2, 310, textWidth + padding * 2, 70);
+            drawHandDrawnCircle(ctx, canvas.width / 2, 310, textWidth + padding, 90);
         }
         
         function generateImage() {
@@ -152,10 +196,12 @@
         }
         
         // Wait for fonts to load then draw initial image
-        document.fonts.ready.then(() => {
-            // Draw initial image with a default word
-            drawImage('tokens');
-        });
+        window.onload = function() {
+            // Draw initial image with a default word after a short delay to ensure fonts are loaded
+            setTimeout(() => {
+                drawImage('everyone');
+            }, 500);
+        };
         
         // Also set up input for pressing Enter
         customWordInput.addEventListener('keyup', function(event) {
